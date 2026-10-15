@@ -1,14 +1,14 @@
-# 18-bit Color Wheel + Picker
+# 15-bit RGB555 Color Wheel
 
-An interactive color wheel for exploring the complete **262,144-color** space of a native 18-bit display (6 bits per red, green, and blue channel).
+An interactive picker for the complete **32,768-color** RGB555 space: 5 bits each for red, green, and blue. RGB555 is the color format used by the Nintendo DS.
 
-The picker constrains each channel to one of 64 hardware levels. In an 8-bit color space those levels are `0, 4, 8, 12 … 248, 252`, so every color it produces is native and requires no frame-rate-control (FRC) dithering.
+The picker constrains each channel to one of 32 values (`0` through `31`) and displays the selected color as an 8-bit hex value.
 
 ## Features
 
-- Hue/saturation wheel with a separate 6-bit value control
-- Direct red, green, and blue controls for reaching every possible color
-- 6-bit, 8-bit, hexadecimal, binary, and color-index readouts
+- Hue/saturation wheel with a separate 5-bit value control
+- Direct red, green, and blue controls for reaching every possible RGB555 color
+- 5-bit RGB, 8-bit, hexadecimal, binary, and color-index readouts
 - One-click hexadecimal value copying
 - Responsive mouse, touch, and mobile layout
 - No dependencies or build step
@@ -25,12 +25,14 @@ Then visit <http://localhost:8000>.
 
 ## How the conversion works
 
-Each 6-bit channel is an integer from `0` through `63`. The app maps it into an 8-bit CSS channel by multiplying it by four:
+Each RGB555 channel is an integer from `0` through `31`. For the 8-bit preview, each channel is expanded by repeating its high bits:
 
 ```text
-8-bit output = 6-bit value × 4
+8-bit output = (5-bit value << 3) | (5-bit value >> 2)
 ```
 
-Eight-bit channel values that fall between these steps may be simulated on a 6-bit panel by alternating between adjacent hardware levels over multiple frames. Values emitted by this picker always have a remainder of zero and therefore use 0% FRC.
+For example, `31` maps to `255`, and `16` maps to `132`. The readout's color index packs the channels in red-green-blue order:
 
-`#FFFFFF` can also be safe on real panels because the maximum input clamps to their brightest hardware level, but it duplicates that endpoint. This picker uses `#FCFCFC` as its unique maximum so the represented space remains exactly 64³ colors.
+```text
+index = red × 1024 + green × 32 + blue
+```

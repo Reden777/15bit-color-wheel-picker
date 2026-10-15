@@ -14,7 +14,7 @@
     b: $('blueSlider'),
     v: $('valueSlider')
   };
-  const state = { r: 52, g: 12, b: 12, h: 0, s: 0.769, v: 0.825 };
+  const state = { r: 26, g: 6, b: 6, h: 0, s: 0.769, v: 26 / 31 };
 
   function hsvToRgb(h, s, v) {
     const i = Math.floor(h * 6);
@@ -84,7 +84,7 @@
   }
 
   function toHex(value) { return value.toString(16).padStart(2, '0').toUpperCase(); }
-  function output8(value6) { return value6 * 4; }
+  function output8(value5) { return (value5 << 3) | (value5 >> 2); }
   function relativeLuminance(r, g, b) {
     const linear = value => {
       const channel = value / 255;
@@ -95,8 +95,8 @@
 
   function render(source = 'rgb') {
     if (source === 'rgb') {
-      [state.h, state.s, state.v] = rgbToHsv(state.r / 63, state.g / 63, state.b / 63);
-      sliders.v.value = Math.round(state.v * 63);
+      [state.h, state.s, state.v] = rgbToHsv(state.r / 31, state.g / 31, state.b / 31);
+      sliders.v.value = Math.round(state.v * 31);
       drawWheel();
     }
     const r8 = output8(state.r), g8 = output8(state.g), b8 = output8(state.b);
@@ -104,15 +104,15 @@
     document.documentElement.style.setProperty('--selected', hex);
     document.documentElement.style.setProperty('--preview-ink', relativeLuminance(r8, g8, b8) > 0.179 ? '#101114' : '#FFFFFF');
     $('hexValue').textContent = hex;
-    $('rgb6Value').textContent = `${state.r}, ${state.g}, ${state.b}`;
+    $('rgb5Value').textContent = `${state.r}, ${state.g}, ${state.b}`;
     $('rgb8Value').textContent = `${r8}, ${g8}, ${b8}`;
-    $('binaryValue').textContent = [state.r, state.g, state.b].map(v => v.toString(2).padStart(6, '0')).join(' · ');
-    $('indexValue').textContent = (state.r * 4096 + state.g * 64 + state.b).toLocaleString('en-US');
+    $('binaryValue').textContent = [state.r, state.g, state.b].map(v => v.toString(2).padStart(5, '0')).join(' · ');
+    $('indexValue').textContent = (state.r * 1024 + state.g * 32 + state.b).toLocaleString('en-US');
     ['r', 'g', 'b'].forEach(channel => {
       sliders[channel].value = state[channel];
       $(`${channel === 'r' ? 'red' : channel === 'g' ? 'green' : 'blue'}Output`).textContent = state[channel];
     });
-    $('valueOutput').textContent = `${sliders.v.value} / 63`;
+    $('valueOutput').textContent = `${sliders.v.value} / 31`;
     const angle = state.h * Math.PI * 2 - Math.PI / 2;
     const radius = state.s * 48;
     cursor.style.left = `${50 + Math.cos(angle) * radius}%`;
@@ -126,11 +126,11 @@
     const radius = Math.min(1, Math.hypot(x, y) / (rect.width * .48));
     state.h = (Math.atan2(y, x) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2) / (Math.PI * 2);
     state.s = radius;
-    state.v = Number(sliders.v.value) / 63;
+    state.v = Number(sliders.v.value) / 31;
     const [r, g, b] = hsvToRgb(state.h, state.s, state.v);
-    state.r = Math.round(r * 63);
-    state.g = Math.round(g * 63);
-    state.b = Math.round(b * 63);
+    state.r = Math.round(r * 31);
+    state.g = Math.round(g * 31);
+    state.b = Math.round(b * 31);
     render('wheel');
   }
 
@@ -158,11 +158,11 @@
     render('rgb');
   }));
   sliders.v.addEventListener('input', () => {
-    state.v = Number(sliders.v.value) / 63;
+    state.v = Number(sliders.v.value) / 31;
     const [r, g, b] = hsvToRgb(state.h, state.s, state.v);
-    state.r = Math.round(r * 63);
-    state.g = Math.round(g * 63);
-    state.b = Math.round(b * 63);
+    state.r = Math.round(r * 31);
+    state.g = Math.round(g * 31);
+    state.b = Math.round(b * 31);
     drawWheel();
     render('wheel');
   });
